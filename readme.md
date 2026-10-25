@@ -1,16 +1,16 @@
-# Smart Manufacturing Machine Failure Prediction
+# Smart Manufacturing Quality Prediction
 
 ## Overview
-An end-to-end machine learning project that predicts potential machine failures using operating conditions such as temperature, rotational speed, torque, and tool wear. The project uses XGBoost and feature engineering to identify patterns associated with machine failure.
+An end-to-end machine learning project that predicts potential machine failures from operating conditions such as temperature, rotational speed, torque, and tool wear. The project uses XGBoost, feature engineering, model explainability, and interactive prediction interfaces to support predictive maintenance.
 
 ## Problem Statement
-Unexpected machine failures can cause downtime and maintenance costs. This project explores how machine sensor data can be used to estimate failure risk and support predictive maintenance decisions.
+Unexpected machine failures can cause production downtime and maintenance costs. This project explores how machine sensor data can estimate failure risk and help prioritize maintenance decisions.
 
 ## Dataset
 - **Dataset:** AI4I 2020 Predictive Maintenance Dataset
 - **Target:** `Machine failure`
 - **Task:** Binary classification
-- **Challenge:** Class imbalance, with failures representing approximately 3.39% of the dataset.
+- **Class imbalance:** Approximately 3.39% of records represent machine failures.
 
 ## Features Used
 - Machine type
@@ -25,16 +25,16 @@ Identifier columns and failure-mode indicators were excluded from model inputs t
 
 ## Machine Learning Workflow
 1. Data cleaning and exploratory data analysis
-2. Train-test split with stratification
-3. Numerical imputation and scaling
+2. Stratified train-test splitting
+3. Missing-value imputation and numerical scaling
 4. Categorical imputation and one-hot encoding
 5. Scikit-learn preprocessing and model pipelines
 6. Comparison of Logistic Regression, Decision Tree, Random Forest, and XGBoost
-7. Hyperparameter tuning with GridSearchCV and cross-validation
+7. Hyperparameter tuning using GridSearchCV and cross-validation
 8. Feature engineering and cross-validation comparison
 9. Class-imbalance experiments using class weighting and SMOTE
 10. Model interpretation using SHAP and permutation importance
-11. Evaluation using precision, recall, F1-score, Average Precision, and a confusion matrix
+11. Threshold exploration and evaluation using precision, recall, F1-score, Average Precision, and a confusion matrix
 12. Model persistence using joblib
 
 ## Final Model
@@ -42,36 +42,43 @@ Identifier columns and failure-mode indicators were excluded from model inputs t
 - **Number of estimators:** 100
 - **Maximum tree depth:** 5
 - **Learning rate:** 0.05
-- **Decision threshold used for final evaluation:** 0.4
+- **Evaluation threshold:** 0.4
 
 The fitted preprocessing and classification pipeline is saved as `models/machine_failure_model.joblib`.
 
-## Final Test Results
-The recorded results on the final test split were:
+## Evaluation Results
+
+The following results were recorded on the final test split using a classification threshold of 0.4.
 
 | Metric | Result |
 |---|---:|
 | Average Precision | 0.8411 |
-| Accuracy | 98.6% |
-| Failure precision | 90.0% |
-| Failure recall | 66.2% |
-| Failure F1-score | 76.3% |
+| Accuracy | 98.65% |
+| Failure precision | 85.96% |
+| Failure recall | 72.06% |
+| Failure F1-score | 78.40% |
 
 ### Confusion Matrix
 
 | | Predicted No Failure | Predicted Failure |
 |---|---:|---:|
-| Actual No Failure | 1927 | 5 |
-| Actual Failure | 23 | 45 |
+| Actual No Failure | 1924 | 8 |
+| Actual Failure | 19 | 49 |
 
-The model detected 45 of 68 failures and missed 23. The results illustrate a trade-off between detecting failures and avoiding false alarms.
+The model correctly detected 49 of 68 failures and missed 19. It also generated 8 false alarms.
 
-**Evaluation caveat:** Earlier experiments influenced model selection using the same overall dataset. These metrics are useful for this project, but should not be presented as an entirely independent estimate of real-world performance. External validation would provide stronger evidence of generalization.
+**Evaluation caveat:** Earlier experiments used the same overall dataset to inform model and threshold selection. Therefore, these results should be treated as experimental rather than a fully independent estimate of real-world performance. Selecting the threshold using training-only validation or out-of-fold predictions, followed by evaluation on an untouched test set, would provide a more rigorous estimate.
 
 ## Model Explainability
-SHAP was used to investigate global feature importance and individual predictions. Permutation importance was also used to measure how shuffling individual features affected Average Precision.
+SHAP was used to examine global feature importance and individual predictions. Permutation importance was also used to assess how shuffling individual features affected Average Precision.
 
-These methods describe model behavior and predictive relationships; they do not establish causation.
+These methods describe predictive relationships and model behavior; they do not establish causation.
+
+## API and Interactive Dashboard
+- **FastAPI:** Provides a `/predict` endpoint that accepts machine operating conditions and returns a failure probability and classification.
+- **Streamlit:** Provides an interactive dashboard for entering machine readings and viewing predicted failure risk.
+- **Pytest:** Includes automated API tests for successful requests and invalid inputs.
+- **Decision threshold:** The API and dashboard use a threshold of 0.4.
 
 ## Technologies
 - Python
@@ -82,12 +89,92 @@ These methods describe model behavior and predictive relationships; they do not 
 - SHAP
 - imbalanced-learn
 - joblib
+- FastAPI and Uvicorn
+- Streamlit
+- Pytest
 - Jupyter Notebook
 
+## Project Structure
+
+```text
+Smart Manufacturing Quality Prediction/
+├── models/
+│   └── machine_failure_model.joblib
+├── notebook/
+│   └── main.ipynb
+├── src/
+│   └── api.py
+├── tests/
+│   └── test_api.py
+├── app.py
+├── dataset.csv
+├── requirements.txt
+├── README.md
+└── .gitignore
+```
+
+## Installation and Usage
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/kartiksrivastava33-source/smart-manufacturing-quality-prediction.git
+cd smart-manufacturing-quality-prediction
+```
+
+### 2. Create and activate a virtual environment
+
+```bash
+python -m venv .venv
+```
+
+Windows PowerShell:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+### 3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Run the Streamlit dashboard
+
+```bash
+streamlit run app.py
+```
+
+### 5. Run the FastAPI service
+
+```bash
+python -m uvicorn src.api:app --reload
+```
+
+Open `http://127.0.0.1:8000/docs` to test the API through Swagger UI.
+
+### 6. Run automated tests
+
+```bash
+python -m pytest tests/ -v
+```
+
 ## Current Status
-The core ML workflow, model evaluation, explainability experiments, and model saving/loading have been implemented. API development, automated tests, containerization, CI, and monitoring are planned as future steps.
+The project includes the ML training and evaluation workflow, feature engineering, explainability experiments, a saved model, a FastAPI prediction endpoint, a Streamlit dashboard, and automated API tests.
+
+Containerization, continuous integration, production deployment, and monitoring have not been implemented.
 
 ## Limitations
-- Performance has been evaluated on a single dataset split.
-- Failure events are rare, so recall and precision should be considered alongside accuracy.
-- The selected
+- Evaluation is based on a single held-out split, and earlier experiments influenced model selection.
+- Failure events are rare, so accuracy alone is not a sufficient performance measure.
+- The threshold of 0.4 is provisional and should be validated without using the final test set for threshold selection.
+- The dataset is not a substitute for validation on real operating machines.
+- Predicted failure probabilities should not be interpreted as calibrated real-world risk without a dedicated calibration assessment.
+
+## Future Improvements
+- Validate the threshold using training-only validation or out-of-fold predictions.
+- Evaluate on independent data from real manufacturing equipment.
+- Add model and data drift monitoring.
+- Containerize the API and dashboard.
+- Deploy the application for remote access.
