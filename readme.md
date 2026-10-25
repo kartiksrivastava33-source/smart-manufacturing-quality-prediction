@@ -122,13 +122,13 @@ git clone https://github.com/kartiksrivastava33-source/smart-manufacturing-quali
 cd smart-manufacturing-quality-prediction
 ```
 
-### 2. Create and activate a virtual environment
+### 2. Create a virtual environment
 
 ```bash
 python -m venv .venv
 ```
 
-Windows PowerShell:
+Activate it in Windows PowerShell:
 
 ```powershell
 .venv\Scripts\Activate.ps1
